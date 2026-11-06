@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. Sharon's AI Prompt Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#120b2e; --bg2:#1e1150; --ink:#f4f1ff; --muted:#b9b2dc;
+  --violet:#7c5cff; --pink:#ff4fa3; --amber:#ffb547; --teal:#2ee6c5;
+  --card:rgba(255,255,255,.06); --line:rgba(255,255,255,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--ink);
+  background:radial-gradient(1200px 700px at 10% -10%,#3a1f8f 0%,transparent 60%),
+             radial-gradient(900px 600px at 110% 110%,#7a1f6a 0%,transparent 60%),
+             linear-gradient(160deg,var(--bg1),var(--bg2));
+  background-attachment:fixed;overflow:hidden;
+}
+.blob{position:fixed;border-radius:50%;filter:blur(70px);opacity:.45;pointer-events:none;z-index:0;animation:float 14s ease-in-out infinite}
+.b1{width:340px;height:340px;background:var(--pink);top:-80px;right:12%}
+.b2{width:300px;height:300px;background:var(--teal);bottom:-90px;left:8%;animation-delay:-5s;opacity:.3}
+.b3{width:220px;height:220px;background:var(--amber);top:45%;left:55%;animation-delay:-9s;opacity:.22}
+@keyframes float{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-25px)}}
+
+/* ---------- Landing ---------- */
+#landing{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;transition:opacity .45s,transform .45s}
+#landing.hide{opacity:0;transform:scale(.97);pointer-events:none}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:13px;color:var(--muted);margin-bottom:26px;backdrop-filter:blur(8px)}
+.badge i{width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 12px var(--teal)}
+h1{font-size:clamp(34px,6vw,64px);font-weight:800;line-height:1.08;letter-spacing:-.02em;max-width:900px}
+h1 span{background:linear-gradient(90deg,var(--amber),var(--pink) 45%,var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{margin-top:18px;color:var(--muted);font-size:clamp(15px,1.8vw,18px);max-width:560px;line-height:1.6}
+.start{
+  margin-top:40px;border:0;cursor:pointer;font:inherit;font-weight:700;font-size:19px;color:#fff;
+  padding:18px 54px;border-radius:999px;
+  background:linear-gradient(90deg,var(--pink),var(--violet));
+  box-shadow:0 12px 40px -8px rgba(255,79,163,.6),inset 0 1px 0 rgba(255,255,255,.3);
+  transition:transform .2s,box-shadow .2s;display:inline-flex;align-items:center;gap:12px
+}
+.start:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 18px 50px -8px rgba(124,92,255,.75)}
+.start svg{transition:transform .2s}.start:hover svg{transform:translateX(4px)}
+.chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:38px}
+.chips span{font-size:12.5px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:rgba(255,255,255,.03)}
+
+/* ---------- Chat ---------- */
+#chat{position:fixed;inset:0;z-index:2;display:flex;flex-direction:column;opacity:0;transform:translateY(20px);pointer-events:none;transition:opacity .45s .1s,transform .45s .1s}
+#chat.show{opacity:1;transform:none;pointer-events:auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;border-bottom:1px solid var(--line);background:rgba(18,11,46,.55);backdrop-filter:blur(14px)}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{width:38px;height:38px;border-radius:12px;flex:none;background:linear-gradient(135deg,var(--amber),var(--pink),var(--violet));display:grid;place-items:center;box-shadow:0 6px 20px -6px var(--pink)}
+.brand b{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand small{display:block;color:var(--muted);font-size:12px;font-weight:500}
+.hbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:13px;font-weight:600;padding:9px 14px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:background .2s;white-space:nowrap}
+.hbtn:hover{background:rgba(255,255,255,.12)}
+#log{flex:1;overflow-y:auto;padding:28px 18px 10px;scroll-behavior:smooth}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.msg{display:flex;gap:12px;align-items:flex-start;animation:pop .35s ease}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.av{width:34px;height:34px;border-radius:10px;flex:none;display:grid;place-items:center;font-size:13px;font-weight:700}
+.bot .av{background:linear-gradient(135deg,var(--pink),var(--violet))}
+.user{flex-direction:row-reverse}
+.user .av{background:linear-gradient(135deg,var(--teal),#2a8cff);color:#062a2a}
+.bubble{padding:13px 17px;border-radius:16px;line-height:1.6;font-size:15px;max-width:82%;white-space:pre-wrap;word-wrap:break-word}
+.bot .bubble{background:var(--card);border:1px solid var(--line);border-top-left-radius:4px}
+.user .bubble{background:linear-gradient(135deg,rgba(124,92,255,.85),rgba(255,79,163,.75));border-top-right-radius:4px}
+.result{flex:1;min-width:0}
+.result .lead{font-size:14.5px;color:var(--muted);margin:6px 0 10px;font-weight:600}
+.pbox{border-radius:16px;overflow:hidden;border:1px solid rgba(124,92,255,.45);background:rgba(10,6,28,.72);box-shadow:0 20px 50px -20px rgba(124,92,255,.55)}
+.pbar{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 10px 16px;background:linear-gradient(90deg,rgba(255,181,71,.16),rgba(255,79,163,.16),rgba(124,92,255,.2));border-bottom:1px solid var(--line)}
+.pbar .t{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;letter-spacing:.04em}
+.dots{display:flex;gap:5px}.dots i{width:9px;height:9px;border-radius:50%}
+.dots i:nth-child(1){background:var(--pink)}.dots i:nth-child(2){background:var(--amber)}.dots i:nth-child(3){background:var(--teal)}
+.copy{border:0;cursor:pointer;font:inherit;font-weight:700;font-size:13px;padding:8px 15px;border-radius:9px;color:#1a0f3a;background:linear-gradient(90deg,var(--amber),#ffd36e);display:inline-flex;align-items:center;gap:7px;transition:transform .15s}
+.copy:hover{transform:scale(1.05)}
+.copy.ok{background:linear-gradient(90deg,var(--teal),#8ff5e3)}
+.copy:disabled{opacity:.5;cursor:default;transform:none}
+pre{margin:0;padding:18px 20px;font-family:'JetBrains Mono',monospace;font-size:13.5px;line-height:1.7;color:#ece8ff;white-space:pre-wrap;word-wrap:break-word;max-height:none}
+pre .hd{color:var(--amber);font-weight:500}
+pre .lb{color:var(--teal)}
+.hint{margin-top:10px;font-size:12.5px;color:var(--muted)}
+.typing{display:inline-flex;gap:5px;padding:4px 0}
+.typing i{width:8px;height:8px;border-radius:50%;background:var(--muted);animation:bounce 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-6px);opacity:1}}
+.err{border-color:rgba(255,79,163,.6)!important;background:rgba(255,79,163,.1)!important}
+
+footer{padding:12px 18px 18px;background:linear-gradient(0deg,rgba(18,11,46,.9),transparent)}
+.composer{max-width:860px;margin:0 auto}
+.targets{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.targets small{color:var(--muted);font-size:12px;margin-right:2px}
+.tg{border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);font:inherit;font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:999px;cursor:pointer;transition:all .15s}
+.tg:hover{color:var(--ink)}
+.tg.on{color:#fff;border-color:transparent;background:linear-gradient(90deg,var(--pink),var(--violet))}
+.inbox{display:flex;gap:10px;align-items:flex-end;padding:8px 8px 8px 16px;border-radius:18px;background:rgba(255,255,255,.07);border:1px solid var(--line);transition:border-color .2s,box-shadow .2s}
+.inbox:focus-within{border-color:rgba(124,92,255,.8);box-shadow:0 0 0 4px rgba(124,92,255,.18)}
+textarea{flex:1;resize:none;border:0;outline:0;background:transparent;color:var(--ink);font:inherit;font-size:15px;line-height:1.5;padding:9px 0;max-height:180px}
+textarea::placeholder{color:#8f87b8}
+.send{width:46px;height:46px;flex:none;border:0;border-radius:13px;cursor:pointer;display:grid;place-items:center;background:linear-gradient(135deg,var(--pink),var(--violet));transition:transform .15s,opacity .2s}
+.send:hover{transform:scale(1.06)}.send:disabled{opacity:.4;cursor:default;transform:none}
+.foot{text-align:center;color:#8a82b3;font-size:11.5px;margin-top:9px}
+@media (max-width:600px){
+  .brand small{display:none}.hbtn span{display:none}
+  .bubble{max-width:90%}pre{font-size:12.5px;padding:14px}
+  .av{display:none}
+}
+</style>
+</head>
+<body>
+<div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+
+<section id="landing">
+  <div class="badge"><i></i> RACE-framework prompt engineering</div>
+  <h1>Dr. Sharon's <span>AI Prompt Generator</span></h1>
+  <p class="sub">Describe what you need. Get one polished, copy-ready prompt for ChatGPT, Claude, Gemini, Grok or any image tool.</p>
+  <button class="start" id="startBtn">Start
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+  </button>
+  <div class="chips"><span>✍️ Writing</span><span>🔬 Research</span><span>📊 Data analysis</span><span>🎓 Teaching</span><span>💻 Coding</span><span>🎨 Images</span></div>
+</section>
+
+<section id="chat" aria-hidden="true">
+  <header>
+    <div class="brand">
+      <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></div>
+      <div><b>Dr. Sharon's AI Prompt Generator</b><small>One task in → one perfect prompt out</small></div>
+    </div>
+    <button class="hbtn" id="newBtn" title="Start a new prompt">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>New prompt</span>
+    </button>
+  </header>
+
+  <div id="log"><div class="wrap" id="wrap"></div></div>
+
+  <footer>
+    <div class="composer">
+      <div class="targets" id="targets">
+        <small>Target AI:</small>
+        <button class="tg on" data-t="Any AI">Any AI</button>
+        <button class="tg" data-t="ChatGPT">ChatGPT</button>
+        <button class="tg" data-t="Claude">Claude</button>
+        <button class="tg" data-t="Gemini">Gemini</button>
+        <button class="tg" data-t="Grok">Grok</button>
+        <button class="tg" data-t="an image generator">Image generator</button>
+      </div>
+      <form class="inbox" id="form">
+        <textarea id="input" rows="1" placeholder="Describe your task or scenario…"></textarea>
+        <button class="send" id="sendBtn" type="submit" aria-label="Generate prompt" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>
+        </button>
+      </form>
+      <div class="foot">Enter to send · Shift+Enter for a new line · Ask for changes anytime and the prompt will be revised</div>
+    </div>
+  </footer>
+</section>
+
+<script>
+const SYSTEM = `You are a Prompt Engineer who creates high-quality, portable prompts for text and image tasks across major AI tools (ChatGPT, Claude, Gemini, Grok, research tools, coding tools, data-analysis tools and image generators).
+
+PURPOSE
+Convert the user's scenario into ONE optimized, copy-ready prompt using the RACE framework:
+- R — Role: the most appropriate expertise or professional perspective. Functional, not theatrical (state profession/domain, depth of expertise, viewpoint, relationship to the audience). Never "world's greatest genius" style personas.
+- A — Action: the exact task and required deliverables. Grammar: verb + object + scope + deliverable. One primary verb; if there are several tasks, order them as numbered subtasks.
+- C — Context & Constraints: objective, audience, inputs, tone, structure, length, tools, guardrails, success criteria and anything to avoid. Keep only decision-relevant information. Convert vague adjectives ("good", "detailed") into measurable, observable requirements.
+- E — Examples: one or two brief examples or output cues ONLY when they materially reduce ambiguity (difficult style, label, schema or tone). Otherwise omit the section.
+
+CORE OUTPUT RULE
+Generate only ONE prompt. Never provide alternative prompts, variations, multiple versions, power-user upgrades, instructions on how to use the prompt, explanations of RACE, or commentary about how the prompt was made. If several approaches are possible, choose the single approach most likely to achieve the user's goal. Do not ask clarifying questions; fill gaps with sensible defaults or descriptive placeholders.
+
+WORKFLOW
+1. Understand: text or image task; objective and intended use; audience; deliverable; target AI tool; success criteria. Use everything already said in the conversation.
+2. Create one self-contained prompt that can be pasted directly into the target tool. Include only relevant fields; delete empty or generic fields rather than filling them with filler. Simple tasks get a compact prompt; specialist tasks get all fields.
+3. Self-check silently: appropriate expertise; clear action; all deliverables listed; relevant context and constraints; correct domain terminology; observable success criteria; no repetition; ready to use; no variations.
+
+OUTPUT FORMAT (strict)
+Return ONLY the prompt text itself — no heading, no preamble, no closing remarks, no markdown code fences. Use this layout, keeping only the relevant lines:
+
+[R] Role:
+...
+
+[A] Action:
+...
+
+[C] Context & Constraints:
+- Goal:
+- Audience:
+- Inputs:
+- Style/Tone:
+- Structure/Format:
+- Length/Scope:
+- Tools/Sources:
+- Guardrails:
+- Success Criteria:
+- Avoid:
+
+[E] Examples:
+- Positive:
+- Avoid:
+
+TEXT-TASK GUIDANCE
+For writing, research, analysis, teaching, coding, planning, summarisation or document generation consider: purpose and intended use; audience and expertise level; supplied files, links, data or placeholders; required headings, tables, citations or formatting; tone, language, reading level; word count, duration or depth; permitted tools and sources; privacy, safety, ethical, legal or compliance boundaries; unsupported claims to avoid.
+- Data analysis: specify variables, data cleaning, recoding, statistical methods, tables, graphs, interpretation and export formats.
+- Research: specify evidence hierarchy, permitted sources, publication-date limits, citation style, and fact-verification requirements; require the model to say when evidence is insufficient instead of inventing it.
+- Coding: specify technical environment, dependencies, inputs, outputs, tests and acceptance criteria.
+- Long source material: tell the user to place documents inside <source_material> ... </source_material> tags ABOVE the instructions, and phrase the Action as "Based only on the source material above, ...".
+- Multi-step tasks: describe observable stages (e.g. extract → analyse → check against criteria → return deliverable plus a concise verification note). Never request hidden chain-of-thought or "show every thought"; instead ask for key assumptions, checks performed and a concise rationale where useful.
+- Expectations should distinguish facts, assumptions and uncertainty when accuracy matters, and forbid fabricated facts, references, data or sources.
+
+IMAGE-TASK GUIDANCE
+Adapt RACE for image generation: relevant visual expertise; intended use; main subject and supporting elements; composition, framing, perspective and focal point; setting/background; style and medium; lighting, mood and colour palette; exact text that must appear (in quotes); orientation, aspect ratio, resolution; reference-image or identity-preservation needs; elements to exclude; platform parameters only if the tool is known; visual success criteria. Do not invent unsupported parameters when the image tool is unknown.
+
+DEFAULTS (when not specified)
+Audience: informed general audience. Tone: clear, professional, natural. Text format: concise Markdown with descriptive headings. Length: concise but complete. Privacy: exclude unnecessary personally identifiable information. Success: accurate, clear, actionable, fit for purpose. Missing content: descriptive placeholders such as <TOPIC>, <AUDIENCE>, <SOURCE_FILE>, <ORGANIZATION_NAME>. Use British/Indian English spelling unless the user writes otherwise.
+
+MODEL ADAPTATION (based on the stated target AI)
+- ChatGPT: clear natural-language goal, constraints and output contract; for reasoning models keep it direct and do not add "think step by step".
+- Claude: explicit, direct instructions; give the motivation behind constraints; for complex prompts wrap supplied material and sections in descriptive XML tags (e.g. <context>, <source_material>, <output_format>).
+- Gemini: concise and precise; place the specific question or instruction AFTER any long context and anchor it ("Based on the information above...").
+- Grok: direct task / constraint / output specification.
+- Any AI: portable, model-neutral natural language.
+- Image generator: visual descriptors, aspect ratio, negative instructions ("Exclude: ..."), and supported parameters only.
+
+SAFETY
+Decline unsafe or disallowed requests and offer one safe reformulation when possible. Do not expose sensitive personal information; use <PII_REMOVED> when necessary. Never fabricate facts, references, data, credentials or sources.
+
+NON-TASK MESSAGES
+If the user's message is not a task or scenario (e.g. a greeting, gibberish, or a question about this app), or the request must be declined, reply with a single short line that begins exactly with "@@MSG " and nothing else (e.g. "@@MSG Please describe the task you need a prompt for."). Never use @@MSG together with a prompt.
+
+REVISIONS
+If the user asks for a change, revise the existing prompt and return the COMPLETE revised prompt in the same format. Still return only one prompt.`;
+
+const $ = s => document.querySelector(s);
+const wrap = $('#wrap'), log = $('#log'), input = $('#input'), sendBtn = $('#sendBtn');
+let history = [];      // [{role, content}]
+let target = 'Any AI';
+let busy = false;
+let samplePromise = null;
+let controller = null;
+
+function getSample(){
+  if(!samplePromise){
+    samplePromise = (window.claude && typeof window.claude.use === 'function')
+      ? window.claude.use('sample').catch(()=>null)
+      : Promise.resolve(null);
+  }
+  return samplePromise;
+}
+
+function scrollDown(){ requestAnimationFrame(()=>{ log.scrollTop = log.scrollHeight; }); }
+
+function addBot(text, cls=''){
+  const d = document.createElement('div');
+  d.className = 'msg bot';
+  d.innerHTML = `<div class="av">AI</div><div class="bubble ${cls}"></div>`;
+  d.querySelector('.bubble').textContent = text;
+  wrap.appendChild(d); scrollDown(); return d;
+}
+function addUser(text){
+  const d = document.createElement('div');
+  d.className = 'msg user';
+  d.innerHTML = `<div class="av">You</div><div class="bubble"></div>`;
+  d.querySelector('.bubble').textContent = text;
+  wrap.appendChild(d); scrollDown();
+}
+function addTyping(){
+  const d = document.createElement('div');
+  d.className = 'msg bot';
+  d.innerHTML = `<div class="av">AI</div><div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div>`;
+  wrap.appendChild(d); scrollDown(); return d;
+}
+
+function esc(s){ return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function highlight(text){
+  return esc(text).split('\n').map(line=>{
+    if(/^\s*\[[RACE]\]/.test(line)) return `<span class="hd">${line}</span>`;
+    const m = line.match(/^(\s*-\s*)([A-Za-z\/ &]+:)(.*)$/);
+    if(m) return `${m[1]}<span class="lb">${m[2]}</span>${m[3]}`;
+    return line;
+  }).join('\n');
+}
+function clean(t){
+  return t.replace(/^\s*```[a-z]*\s*\n?/i,'').replace(/\n?```\s*$/,'')
+          .replace(/^\s*Here is the RACE Prompt[^\n]*\n+/i,'').trim();
+}
+
+function makeResult(){
+  const d = document.createElement('div');
+  d.className = 'msg bot';
+  d.innerHTML = `<div class="av">AI</div>
+   <div class="result">
+     <div class="lead">Here is the RACE Prompt which you can copy and paste to a new chat window:</div>
+     <div class="pbox">
+       <div class="pbar"><div class="t"><span class="dots"><i></i><i></i><i></i></span>RACE PROMPT</div>
+         <button class="copy" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Copy</span></button>
+       </div>
+       <pre></pre>
+     </div>
+   </div>`;
+  const pre = d.querySelector('pre'), btn = d.querySelector('.copy');
+  btn.addEventListener('click', ()=>copyText(pre.textContent, btn));
+  return {el:d, pre, btn};
+}
+
+async function copyText(text, btn){
+  let ok = false;
+  try{ await navigator.clipboard.writeText(text); ok = true; }catch(e){
+    try{
+      const ta = document.createElement('textarea'); ta.value = text;
+      ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta);
+      ta.select(); ok = document.execCommand('copy'); ta.remove();
+    }catch(_){}
+  }
+  const label = btn.querySelector('span');
+  if(ok){ btn.classList.add('ok'); label.textContent='Copied!'; }
+  else { label.textContent='Select & copy manually'; }
+  setTimeout(()=>{ btn.classList.remove('ok'); label.textContent='Copy'; }, 1800);
+}
+
+async function generate(userText){
+  busy = true; sendBtn.disabled = true;
+  const content = history.length === 0
+    ? `Target AI: ${target}\n\nTask / scenario:\n${userText}`
+    : `Target AI: ${target}\n\nRequested change or new information:\n${userText}`;
+  history.push({role:'user', content});
+
+  const typing = addTyping();
+  const sample = await getSample();
+  if(!sample){
+    typing.remove();
+    addBot('The prompt engine isn’t available in this view. Please open this page on claude.ai while signed in, then try again.', 'err');
+    history.pop(); busy=false; updateSend(); return;
+  }
+
+  let res = null, started = false, isMsg = false;
+  controller = new AbortController();
+  try{
+    const out = await sample([{role:'user', content: SYSTEM + '\n\n---\nFollow the instructions above for the conversation below.'},
+                              {role:'assistant', content:'Understood. I will return only one RACE prompt (or a single @@MSG line).'},
+                              ...history], {
+      cache:false, modelTier:'default', signal: controller.signal,
+      onText: ({text})=>{
+        const t = text.trimStart();
+        if(t.startsWith('Thinking')) return;
+        if(!started){
+          if(t.length < 6) return;
+          if(t.startsWith('@@MSG')){ isMsg = true; return; }
+          started = true; typing.remove(); res = makeResult(); wrap.appendChild(res.el);
+        }
+        if(!isMsg){ res.pre.innerHTML = highlight(clean(text)); scrollDown(); }
+      }
+    });
+    const final = (out && out.text) || '';
+    history.push({role:'assistant', content: final});
+    if(final.trim().startsWith('@@MSG') || isMsg){
+      typing.remove(); if(res) res.el.remove();
+      addBot(final.replace(/^\s*@@MSG\s*/,'').trim() || 'Please describe the task you need a prompt for.');
+    } else {
+      if(!res){ typing.remove(); res = makeResult(); wrap.appendChild(res.el); }
+      res.pre.innerHTML = highlight(clean(final));
+      res.btn.disabled = false;
+      const h = document.createElement('div'); h.className='hint';
+      h.textContent = 'Need a tweak? Type the change below (e.g. "make it for undergraduate students", "add APA citations").';
+      res.el.querySelector('.result').appendChild(h);
+      scrollDown();
+    }
+  }catch(err){
+    typing.remove(); if(res && !res.pre.textContent) res.el.remove();
+    history.pop();
+    if(err && err.name === 'AbortError'){ /* reset */ }
+    else if(err && err.code === 'not_granted') addBot('Permission to use Claude was not granted, so prompts can’t be generated. Reload and allow access to continue.', 'err');
+    else if(err && err.code === 'rate_limited') addBot('Too many requests right now. Please wait a moment and try again.', 'err');
+    else addBot('Something went wrong while generating the prompt. Please try again.', 'err');
+  }finally{
+    controller = null; busy = false; updateSend(); input.focus();
+  }
+}
+
+function updateSend(){ sendBtn.disabled = busy || !input.value.trim(); }
+function autosize(){ input.style.height='auto'; input.style.height = Math.min(input.scrollHeight,180)+'px'; }
+
+function greet(){
+  wrap.innerHTML = '';
+  addBot('Hello! 👋 Please describe the task or scenario for which you need a prompt.');
+}
+
+$('#startBtn').addEventListener('click', ()=>{
+  $('#landing').classList.add('hide');
+  const c = $('#chat'); c.classList.add('show'); c.setAttribute('aria-hidden','false');
+  greet(); getSample(); setTimeout(()=>input.focus(), 450);
+});
+$('#newBtn').addEventListener('click', ()=>{
+  if(controller) controller.abort();
+  history = []; greet(); input.value=''; autosize(); updateSend(); input.focus();
+});
+$('#targets').addEventListener('click', e=>{
+  const b = e.target.closest('.tg'); if(!b) return;
+  document.querySelectorAll('.tg').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); target = b.dataset.t;
+});
+input.addEventListener('input', ()=>{ autosize(); updateSend(); });
+input.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); $('#form').requestSubmit(); }
+});
+$('#form').addEventListener('submit', e=>{
+  e.preventDefault();
+  const t = input.value.trim(); if(!t || busy) return;
+  addUser(t); input.value=''; autosize(); updateSend();
+  generate(t);
+});
+</script>
+</body>
+</html>
